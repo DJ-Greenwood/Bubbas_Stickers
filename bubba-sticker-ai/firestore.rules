@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // User profiles - only accessible by the user
+    match /users/{userId} {
+      allow read, write: if request.auth.uid == userId;
+    }
+    
+    // User usage tracking - only accessible by the user
+    match /users/{userId}/usage/{monthId} {
+      allow read: if request.auth.uid == userId;
+      allow write: if false; // Only writable via server-side functions
+    }
+    
+    // User generated images - only accessible by the user
+    match /users/{userId}/images/{imageId} {
+      allow read: if request.auth.uid == userId;
+      allow create: if request.auth.uid == userId;
+      allow update, delete: if request.auth.uid == userId && resource.data.userId == request.auth.uid;
+    }
+    
+    // Publicly shared images - readable by anyone, writable by owner
+    match /public_images/{imageId} {
+      allow read: if true;
+      allow create: if request.auth.uid != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth.uid != null && resource.data.userId == request.auth.uid;
+    }
+    
+    // Stripe customer data - only readable by the user
+    match /customers/{userId} {
+      allow read: if request.auth.uid == userId;
+      allow write: if false; // Only writable via server-side functions
+      
+      // Subscription data - only readable by the user
+      match /subscriptions/{subscriptionId} {
+        allow read: if request.auth.uid == userId;
+      }
+      
+      // Payment methods - only readable by the user
+      match /payment_methods/{paymentId} {
+        allow read: if request.auth.uid == userId;
+      }
+    }
+    
+    // Public content like blog posts - readable by anyone, writable by admins
+    match /content/{contentId} {
+      allow read: if true;
+      allow write: if false; // Only writable via server-side functions or admin console
+    }
+  }
+}

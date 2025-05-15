@@ -1,0 +1,10 @@
+{
+  "projects": {
+    "default": {
+      "projectId": "your-project-id",
+      "databaseURL": "https://your-database-name.firebaseio.com",
+      "storageBucket": "your-storage-bucket.appspot.com",
+      "location": "us-central"
+    }
+  }
+}
